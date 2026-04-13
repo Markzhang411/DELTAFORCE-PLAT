@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理员登录 - 三角洲行动控制台</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+    .login-container {
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
+    }
+    .login-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 40px 30px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #00dbde, #fc00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .logo p {
+      color: #a0a0c0;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .server-info {
+      background: rgba(0, 219, 222, 0.1);
+      border: 1px solid rgba(0, 219, 222, 0.3);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .server-info h3 {
+      color: #00dbde;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    .server-info code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .form-group {
+      margin-bottom: 24px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #b0b0d0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .form-control {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #00dbde;
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .form-control::placeholder {
+      color: #8888aa;
+    }
+    .btn-login {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(90deg, #00dbde, #fc00ff);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 219, 222, 0.3);
+    }
+    .btn-login:active {
+      transform: translateY(0);
+    }
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: none;
+    }
+    .alert-error {
+      background: rgba(255, 87, 87, 0.1);
+      border: 1px solid rgba(255, 87, 87, 0.3);
+      color: #ff5757;
+    }
+    .alert-success {
+      background: rgba(87, 255, 137, 0.1);
+      border: 1px solid rgba(87, 255, 137, 0.3);
+      color: #57ff89;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #8888aa;
+      font-size: 13px;
+    }
+    .footer a {
+      color: #00dbde;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo">
+        <h1>三角洲行动</h1>
+        <p>管理员控制台 · 演示版本</p>
+      </div>
+      
+      <div class="server-info">
+        <h3>🔄 模拟服务器运行中</h3>
+        <p>API服务器: <code>http://localhost:3000</code></p>
+        <p>静态文件: <code>http://localhost:8000</code></p>
+        <p>测试账号: <code>13800138000</code> / <code>admin123</code></p>
+      </div>
+      
+      <div id="alert" class="alert"></div>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="phone">管理员手机号</label>
+          <input type="text" id="phone" class="form-control" 
+                 placeholder="请输入管理员手机号" value="13800138000" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">密码</label>
+          <input type="password" id="password" class="form-control" 
+                 placeholder="请输入密码" value="admin123" required>
+        </div>
+        
+        <button type="submit" class="btn-login" id="loginBtn">
+          登录管理控制台
+        </button>
+      </form>
+      
+      <div class="footer">
+        <p>© 2026 三角洲行动 · 管理员控制台演示版</p>
+        <p><a href="test-admin-complete.html" target="_blank">查看开发总结</a> | <a href="dashboard-test.html" target="_blank">直接进入仪表盘</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000';
+    
+    function showAlert(message, type = 'error') {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.className = `alert alert-${type}`;
+      alert.style.display = 'block';
+      
+      if (type === 'success') {
+        setTimeout(() => alert.style.display = 'none', 3000);
+      }
+    }
+    
+    async function handleLogin(e) {
+      e.preventDefault();
+      
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value;
+      const loginBtn = document.getElementById('loginBtn');
+      
+      if (!phone || !password) {
+        showAlert('请输入手机号和密码');
+        return;
+      }
+      
+      // 禁用按钮
+      loginBtn.disabled = true;
+      loginBtn.textContent = '登录中...';
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+          showAlert('登录成功，正在跳转...', 'success');
+          
+          // 保存token和用户信息
+          localStorage.setItem('admin_token', data.token);
+          localStorage.setItem('admin_user', JSON.stringify(data.user));
+          
+          // 跳转到管理面板
+          setTimeout(() => {
+            window.location.href = 'dashboard-test.html';
+          }, 1000);
+        } else {
+          showAlert(data.msg || '登录失败');
+        }
+      } catch (error) {
+        console.error('登录错误:', error);
+        showAlert('网络错误，请确保模拟API服务器正在运行');
+      } finally {
+        // 恢复按钮
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登录管理控制台';
+      }
+    }
+    
+    // 检查是否已登录
+    function checkAuth() {
+      const token = localStorage.getItem('admin_token');
+      if (token) {
+        // 验证token是否有效
+        try {
+          const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
+          if (user.role === 'admin') {
+            window.location.href = 'dashboard-test.html';
+          }
+        } catch (e) {
+          localStorage.clear();
+        }
+      }
+    }
+    
+    // 初始化
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    
+    // 页面加载时检查认证
+    window.addEventListener('load', checkAuth);
+    
+    // 按Enter键登录
+    document.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !document.getElementById('loginBtn').disabled) {
+        document.getElementById('loginForm').requestSubmit();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+#!/usr/bin/expect -f
+
+set server "154.64.228.29"
+set user "root"
+set pass "ynmaFWAX7694"
+set timeout 30
+
+# 连接服务器
+spawn ssh -o StrictHostKeyChecking=no $user@$server
+
+expect "password:"
+send "$pass\r"
+
+expect "#"
+
+# 安装expect（如果未安装）
+send "which expect\r"
+expect "#"
+
+send "if ! which expect >/dev/null 2>&1; then apt-get update && apt-get install -y expect; fi\r"
+expect "#"
+
+# 检查Nginx配置
+send "echo '=== 检查当前配置 ==='\r"
+expect "#"
+
+send "cat /etc/nginx/sites-enabled/delta-8080 2>/dev/null || echo '配置文件不存在'\r"
+expect "#"
+
+# 修改配置
+send "echo '=== 修改配置 ==='\r"
+expect "#"
+
+send "cat > /etc/nginx/sites-available/delta-8080 << 'EOF'\r"
+expect ">"
+
+send "server {\r"
+expect ">"
+
+send "    listen 8080;\r"
+expect ">"
+
+send "    server_name 154.64.228.29;\r"
+expect ">"
+
+send "    root /var/www/delta-8080/public;\r"
+expect ">"
+
+send "    index index.html;\r"
+expect ">"
+
+send "    location / { try_files \\\$uri \\\$uri/ =404; }\r"
+expect ">"
+
+send "    location /admin/ { alias /var/www/delta-8080/public/admin/; try_files \\\$uri \\\$uri/ =404; }\r"
+expect ">"
+
+send "}\r"
+expect ">"
+
+send "EOF\r"
+expect "#"
+
+# 启用配置
+send "ln -sf /etc/nginx/sites-available/delta-8080 /etc/nginx/sites-enabled/\r"
+expect "#"
+
+# 确保目录存在
+send "mkdir -p /var/www/delta-8080/public\r"
+expect "#"
+
+# 重启Nginx
+send "nginx -t && systemctl reload nginx\r"
+expect "#"
+
+# 验证
+send "echo '=== 验证结果 ==='\r"
+expect "#"
+
+send "curl -s -o /dev/null -w '网站: %{http_code}\\\\n' http://localhost:8080/\r"
+expect "#"
+
+send "curl -s -o /dev/null -w '管理员: %{http_code}\\\\n' http://localhost:8080/admin/\r"
+expect "#"
+
+send "echo '✅ 修复完成'\r"
+expect "#"
+
+send "exit\r"
+expect eof

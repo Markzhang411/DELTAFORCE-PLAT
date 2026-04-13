@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - 三角洲行动控制台</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* 复用 dashboard 的样式，这里简化 */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #00dbde;
+      --secondary: #fc00ff;
+      --dark: #0f172a;
+      --darker: #0a0f1f;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+    }
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: var(--darker);
+      color: var(--light);
+      min-height: 100vh;
+    }
+    .admin-container { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 250px;
+      background: var(--dark);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 20px 0;
+      position: fixed;
+      height: 100vh;
+    }
+    .logo { padding: 0 20px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px; }
+    .logo h1 { font-size: 22px; font-weight: 700; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-menu { list-style: none; padding: 0 15px; }
+    .nav-item { margin-bottom: 5px; }
+    .nav-link {
+      display: flex; align-items: center; padding: 12px 15px; color: var(--gray); text-decoration: none;
+      border-radius: 10px; transition: all 0.3s;
+    }
+    .nav-link:hover { background: rgba(255, 255, 255, 0.05); color: var(--light); }
+    .nav-link.active { background: linear-gradient(90deg, rgba(0, 219, 222, 0.1), rgba(252, 0, 255, 0.1)); color: var(--primary); border-left: 3px solid var(--primary); }
+    .nav-link i { width: 24px; margin-right: 12px; font-size: 16px; }
+    .main-content { flex: 1; margin-left: 250px; padding: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .header h2 { font-size: 24px; font-weight: 600; }
+    .btn {
+      padding: 8px 16px; border-radius: 8px; border: none; font-weight: 500; cursor: pointer;
+      transition: all 0.3s; font-size: 14px;
+    }
+    .btn-primary { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 219, 222, 0.3); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.1); color: var(--light); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+    .content-section { background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 25px; margin-bottom: 30px; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-group { display: flex; flex-direction: column; min-width: 200px; }
+    .filter-group label { margin-bottom: 8px; color: var(--gray); font-size: 14px; }
+    .filter-control { padding: 10px 15px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: white; font-size: 14px; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 12px 15px; color: var(--gray); font-weight: 500; font-size: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    td { padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    tr:hover { background: rgba(255, 255, 255, 0.03); }
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge-success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .badge-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .badge-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    .badge-info { background: rgba(59, 130, 246, 0.1); color: var(--info); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; margin-right: 5px; }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px; }
+    .page-btn { padding: 8px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: white; border-radius: 6px; cursor: pointer; }
+    .page-btn.active { background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s ease-in-out infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: none; }
+    .alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); }
+    .alert-success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); }
+    @media (max-width: 992px) {
+      .sidebar { width: 70px; }
+      .logo h1, .logo p, .nav-link span { display: none; }
+      .nav-link { justify-content: center; padding: 15px; }
+      .nav-link i { margin-right: 0; font-size: 18px; }
+      .main-content { margin-left: 70px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <aside class="sidebar">
+      <div class="logo">
+        <h1>Delta</h1>
+        <p>管理控制台</p>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>仪表盘</span></a></li>
+        <li class="nav-item"><a href="users.html" class="nav-link active"><i class="fas fa-users"></i><span>用户管理</span></a></li>
+        <li class="nav-item"><a href="orders.html" class="nav-link"><i class="fas fa-shopping-cart"></i><span>订单管理</span></a></li>
+        <li class="nav-item"><a href="stats.html" class="nav-link"><i class="fas fa-chart-bar"></i><span>数据统计</span></a></li>
+        <li class="nav-item"><a href="logs.html" class="nav-link"><i class="fas fa-history"></i><span>系统日志</span></a></li>
+        <li class="nav-item"><a href="settings.html" class="nav-link"><i class="fas fa-cog"></i><span>系统设置</span></a></li>
+      </ul>
+    </aside>
+    
+    <main class="main-content">
+      <div class="header">
+        <h2>用户管理</h2>
+        <div>
+          <button class="btn btn-primary" onclick="createUser()">
+            <i class="fas fa-plus"></i> 添加用户
+          </button>
+        </div>
+      </div>
+      
+      <div id="alert" class="alert"></div>
+      
+      <div class="content-section">
+        <div class="filters">
+          <div class="filter-group">
+            <label>搜索用户</label>
+            <input type="text" id="searchInput" class="filter-control" placeholder="手机号或姓名" oninput="searchUsers()">
+          </div>
+          <div class="filter-group">
+            <label>用户角色</label>
+            <select id="roleFilter" class="filter-control" onchange="searchUsers()">
+              <option value="all">全部角色</option>
+              <option value="admin">管理员</option>
+              <option value="hunter">护航员</option>
+              <option value="client">客户</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>每页显示</label>
+            <select id="limitSelect" class="filter-control" onchange="changeLimit()">
+              <option value="10">10条</option>
+              <option value="20" selected>20条</option>
+              <option value="50">50条</option>
+              <option value="100">100条</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table id="usersTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>手机号</th>
+                <th>姓名</th>
+                <th>角色</th>
+                <th>评分</th>
+                <th>订单数</th>
+                <th>注册时间</th>
+                <th>最后登录</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="9" style="text-align: center; padding: 40px;">
+                  <div class="loading"></div> 加载中...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="pagination" id="pagination">
+          <button class="page-btn" onclick="prevPage()" disabled>上一页</button>
+          <span id="pageInfo">第1页 / 共1页</span>
+          <button class="page-btn" onclick="nextPage()" disabled>下一页</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    let adminToken = '';
+    let currentPage = 1;
+    let totalPages = 1;
+    let limit = 20;
+    let search = '';
+    let role = 'all';
+    
+    // 初始化
+    function init() {
+      checkAuth();
+      loadUsers();
+    }
+    
+    // 检查认证
+    function checkAuth() {
+      adminToken = localStorage.getItem('admin_token');
+      const userStr = localStorage.getItem('admin_user');
+      
+      if (!adminToken || !userStr) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      try {
+        const adminUser = JSON.parse(userStr);
+        if (adminUser.role !== 'admin') {
+          showAlert('权限不足', 'error');
+          setTimeout(() => window.location.href = 'login.html', 2000);
+        }
+      } catch (e) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    }
+    
+    // 显示提示
+    function showAlert(message, type = 'error') {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.className = `alert alert-${type}`;
+      alert.style.display = 'block';
+      
+      if (type === 'success') {
+        setTimeout(() => alert.style.display = 'none', 3000);
+      }
+    }
+    
+    // API请求
+    async function apiRequest(endpoint, options = {}) {
+      const defaultOptions = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        }
+      };
+      
+      const config = { ...defaultOptions, ...options };
+      
+      try {
+        const response = await fetch(`${API_BASE}${endpoint}`, config);
+        
+        if (response.status === 401) {
+          localStorage.clear();
+          window.location.href = 'login.html';
+          return null;
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('API请求错误:', error);
+        showAlert('网络错误', 'error');
+        return null;
+      }
+    }
+    
+    // 加载用户数据
+    async function loadUsers() {
+      const tbody = document.querySelector('#usersTable tbody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center; padding: 40px;">
+            <div class="loading"></div> 加载中...
+          </td>
+        </tr>
+      `;
+      
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: limit,
+        search: search,
+        role: role === 'all' ? '' : role
+      });
+      
+      const data = await apiRequest(`/api/admin/users?${params}`);
+      
+      if (data && data.ok) {
+        updateUsersTable(data.users);
+        updatePagination(data.total);
+      } else {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 40px; color: var(--gray);">
+              加载失败，请重试
+            </td>
+          </tr>
+        `;
+      }
+    }
+    
+    // 更新用户表格
+    function updateUsersTable(users) {
+      const tbody = document.querySelector('#usersTable tbody');
+      tbody.innerHTML = '';
+      
+      if (users.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 40px; color: var(--gray);">
+              暂无用户数据
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      users.forEach(user => {
+        const roleClass = {
+          'admin': 'badge-danger',
+          'hunter': 'badge-success',
+          'client': 'badge-info'
+        }[user.role] || 'badge-secondary';
+        
+        const roleText = {
+          'admin': '管理员',
+          'hunter': '护航员',
+          'client': '客户'
+        }[user.role] || user.role;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.id}</td>
+          <td><strong>${user.phone}</strong></td>
+          <td>${user.name || '未设置'}</td>
+          <td><span class="badge ${roleClass}">${roleText}</span></td>
+          <td>${user.rating || '5.0'}</td>
+          <td>${user.orders_done || 0}</td>
+          <td>${formatTime(user.created_at)}</td>
+          <td>${user.last_login ? formatTime(user.last_login) : '从未登录'}</td>
+          <td>
+            <button class="btn btn-sm btn-secondary" onclick="editUser(${user.id})">
+              编辑
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="viewUser(${user.id})">
+              查看
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="deleteUser(${user.id})" style="background: rgba(239,68,68,0.1); color: var(--danger);">
+              删除
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+    
+    // 更新分页
+    function updatePagination(total) {
+      totalPages = Math.ceil(total / limit);
+      
+      document.getElementById('pageInfo').textContent = `第${currentPage}页 / 共${totalPages}页`;
+      
+      const prevBtn = document.querySelector('.pagination .page-btn:first-child');
+      const nextBtn = document.querySelector('.pagination .page-btn:last-child');
+      
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    }
+    
+    // 时间格式化
+    function formatTime(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr + 'Z');
+      return date.toLocaleDateString('zh-CN', { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    // 搜索用户
+    function searchUsers() {
+      search = document.getElementById('searchInput').value.trim();
+      role = document.getElementById('roleFilter').value;
+      currentPage = 1;
+      loadUsers();
+    }
+    
+    // 更改每页数量
+    function changeLimit() {
+      limit = parseInt(document.getElementById('limitSelect').value);
+      currentPage = 1;
+      loadUsers();
+    }
+    
+    // 上一页
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        loadUsers();
+      }
+    }
+    
+    // 下一页
+    function nextPage() {
+      if (currentPage < totalPages) {
+        currentPage++;
+        loadUsers();
+      }
+    }
+    
+    // 查看用户
+    function viewUser(userId) {
+      window.location.href = `user-detail.html?id=${userId}`;
+    }
+    
+    // 编辑用户
+    function editUser(userId) {
+      const newRole = prompt('请输入新的角色 (admin/hunter/client):');
+      if (!newRole || !['admin', 'hunter', 'client'].includes(newRole)) {
+        showAlert('无效的角色', 'error');
+        return;
+      }
+      
+      const newName = prompt('请输入新的姓名 (留空保持不变):');
+      const newRating = prompt('请输入新的评分 (1.0-5.0, 留空保持不变):');
+      
+      const updates = { role: newRole };
+      if (newName) updates.name = newName;
+      if (newRating && !isNaN(parseFloat(newRating))) updates.rating = parseFloat(newRating);
+      
+      apiRequest(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates)
+      }).then(data => {
+        if (data && data.ok) {
+          showAlert('用户信息已更新', 'success');
+          loadUsers();
+        } else {
+          showAlert(data?.msg || '更新失败', 'error');
+        }
+      });
+    }
+    
+    // 删除用户
+    function deleteUser(userId) {
+      if (!confirm('确定要删除这个用户吗？此操作不可恢复！')) {
+        return;
+      }
+      
+      apiRequest(`/api/admin/users/${userId}`, {
+        method: 'DELETE'
+      }).then(data => {
+        if (data && data.ok) {
+          showAlert('用户已删除', 'success');
+          loadUsers();
+        } else {
+          showAlert(data?.msg || '删除失败', 'error');
+        }
+      });
+    }
+    
+    // 创建用户
+    function createUser() {
+      const phone = prompt('请输入手机号：');
+      if (!phone) return;
+      
+      const password = prompt('请输入密码：');
+      if (!password) return;
+      
+      const name = prompt('请输入姓名（可选）：') || '';
+      const role = prompt('请输入角色 (client/hunter/admin)：') || 'client';
+      
+      if (!['client', 'hunter', 'admin'].includes(role)) {
+        showAlert('无效的角色', 'error');
+        return;
+      }
+      
+      // 这里需要调用用户注册API，暂时使用管理员创建API
+      showAlert('用户创建功能开发中...', 'info');
+    }
+    
+    // 页面加载完成后初始化
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>

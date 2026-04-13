@@ -1,0 +1,34 @@
+# 在服务器SSH中执行的简单修复命令
+
+# 1. 安装expect（如果需要）
+apt-get update && apt-get install -y expect
+
+# 2. 检查当前配置
+cat /etc/nginx/sites-enabled/delta-8080 2>/dev/null || echo "配置文件不存在"
+
+# 3. 修改配置
+cat > /etc/nginx/sites-available/delta-8080 << 'EOF'
+server {
+    listen 8080;
+    server_name 154.64.228.29;
+    root /var/www/delta-8080/public;
+    index index.html;
+    location / { try_files $uri $uri/ =404; }
+    location /admin/ { alias /var/www/delta-8080/public/admin/; try_files $uri $uri/ =404; }
+}
+EOF
+
+# 4. 启用配置
+ln -sf /etc/nginx/sites-available/delta-8080 /etc/nginx/sites-enabled/
+
+# 5. 确保目录存在
+mkdir -p /var/www/delta-8080/public
+
+# 6. 重启Nginx
+nginx -t && systemctl reload nginx
+
+# 7. 验证
+curl -s -o /dev/null -w "网站: %{http_code}\n" http://localhost:8080/
+curl -s -o /dev/null -w "管理员: %{http_code}\n" http://localhost:8080/admin/
+
+echo "✅ 修复完成"
