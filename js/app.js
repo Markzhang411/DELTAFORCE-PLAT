@@ -2,12 +2,20 @@
    DELTA护航 · 三角洲行动护航接单平台
    ======================================== */
 
-var API_BASE = '';
+var API_BASE = 'http://127.0.0.1:18082';
 function apiCall(method, path, body, token) {
   var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;
   if (body)  opts.body = JSON.stringify(body);
   return fetch(API_BASE + '/api' + path, opts).then(function(r) { return r.json(); });
+}
+
+function apiUserCall(method, path, body, token) {
+  var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
+  opts.headers['clientType'] = 'h5';
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body)  opts.body = JSON.stringify(body);
+  return fetch(API_BASE + path, opts).then(function(r) { return r.json(); });
 }
 
 // ─── 全局状态 ───
@@ -23,7 +31,7 @@ var App = {
   user: null,
   token: null,
   menuOpen: false,
-  useAPI: false,
+  useAPI: true,
 };
 
 // ─── 常量 ───
@@ -119,20 +127,22 @@ function selectLoginRole(role) {
 }
 
 function doLogin() {
-  var phone = document.getElementById('loginPhone').value.trim();
+  // var phone = document.getElementById('loginPhone').value.trim();
+  var username = document.getElementById('loginName').value.trim();
   var pass  = document.getElementById('loginPass').value.trim();
-  if (!phone || !pass) return showToast('请输入手机号和密码');
+  if (!username || !pass) return showToast('请输入用户名和密码');
   if (App.useAPI) {
-    apiCall('POST', '/auth/login', { phone: phone, password: pass }).then(function(data) {
-      if (data.token) { finishLogin(data); } else { localLogin(phone); }
-    }).catch(function() { localLogin(phone); });
-  } else { localLogin(phone); }
+    apiUserCall('POST', '/client/login', { username: username, password: pass }).then(function(data) {
+      if (data.code == 0) {finishLogin(data.data);}
+    }).catch(function() { finishLogin(data.data); });
+  } 
 }
 
-function localLogin(phone) {
+function localLogin(data) {
   App.isLoggedIn = true;
-  App.user = { phone: phone, name: '干员_' + phone.slice(-4) };
-  App.token = 'local_' + Date.now();
+  App.user = data.userInfo;
+    // App.user = { phone: phone, name: '干员_' + phone.slice(-4) };
+  App.token = data.token;
   localStorage.setItem('delta_token', App.token);
   localStorage.setItem('delta_user', JSON.stringify(App.user));
   updateUserUI();
@@ -143,7 +153,7 @@ function localLogin(phone) {
 function finishLogin(data) {
   App.isLoggedIn = true;
   App.token = data.token;
-  App.user = data.user;
+  App.user = data.userInfo;
   localStorage.setItem('delta_token', App.token);
   localStorage.setItem('delta_user', JSON.stringify(App.user));
   updateUserUI();

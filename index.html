@@ -428,12 +428,14 @@
         <p class="login-sub">三角洲行动 · 专业护航平台</p>
         <!-- 登录方式Tab -->
         <div class="login-tabs">
-          <div class="ltab active" id="ltab-phone" onclick="switchLoginTab('phone')">📱 手机号</div>
+         <!--  <div class="ltab active" id="ltab-phone" onclick="switchLoginTab('phone')">📱 手机号</div>
           <div class="ltab" id="ltab-wechat" onclick="switchLoginTab('wechat')">💬 微信</div>
-          <div class="ltab" id="ltab-qq" onclick="switchLoginTab('qq')">🐧 QQ</div>
+          <div class="ltab" id="ltab-qq" onclick="switchLoginTab('qq')">🐧 QQ</div> -->
+          <!-- <div class="ltab active" id="ltab-phone" onclick="switchLoginTab('normal')">用户名密码登录 </div> -->
+     
         </div>
         <!-- 手机号登录 -->
-        <div class="login-form" id="login-form-phone">
+        <!-- <div class="login-form" id="login-form-phone">
           <input type="tel" class="form-input" id="loginPhone" placeholder="请输入手机号" maxlength="11">
           <div class="sms-row">
             <input type="text" class="form-input sms-input" id="loginSmsCode" placeholder="短信验证码">
@@ -446,18 +448,18 @@
             <input type="password" class="form-input" id="loginPass" placeholder="密码">
             <button class="btn-submit" style="margin-top:8px" onclick="doLogin()">密码登录</button>
           </div>
-        </div>
+        </div> -->
         <!-- 微信登录预留 -->
-        <div class="login-form" id="login-form-wechat" style="display:none">
+        <!-- <div class="login-form" id="login-form-wechat" style="display:none">
           <div class="oauth-placeholder">
             <div class="oauth-icon">💬</div>
             <div class="oauth-text">微信登录接口预留</div>
             <div class="oauth-sub">后端对接微信开放平台后启用</div>
             <button class="btn-submit" onclick="showToast('微信登录开发中，请使用手机号登录')">微信一键登录</button>
           </div>
-        </div>
+        </div> -->
         <!-- QQ登录预留 -->
-        <div class="login-form" id="login-form-qq" style="display:none">
+       <!--  <div class="login-form" id="login-form-normal" style="display:none">
           <div class="oauth-placeholder">
             <div class="oauth-icon">🐧</div>
             <div class="oauth-text">QQ登录接口预留</div>
@@ -465,6 +467,24 @@
             <button class="btn-submit" onclick="showToast('QQ登录开发中，请使用手机号登录')">QQ一键登录</button>
           </div>
         </div>
+        <div class="login-footer"><span>登录即同意</span><a>《服务协议》</a><span>和</span><a>《隐私政策》</a></div> -->
+        <!-- 用户名密码登录 -->
+        <!-- <div class="login-form" id="login-form-register" style="display:none">
+          <div class="oauth-placeholder">
+            <input type="username" class="form-input" id="loginName2" placeholder="用户名">
+             <input type="password" class="form-input" id="loginPass2" placeholder="密码">
+            <button class="btn-submit" style="margin-top:8px" onclick="doRegister()">注册</button>
+          </div>
+        </div> -->
+        <div class="login-form" id="login-form-normal">
+          <div class="oauth-placeholder">
+            <!-- <button class="btn-submit" onclick="doLoginSms()">登录 / 注册</button> -->
+            <input type="username" class="form-input" id="loginName" placeholder="用户名">
+             <input type="password" class="form-input" id="loginPass" placeholder="密码">
+            <button class="btn-submit" style="margin-top:8px" onclick="doLogin()">登录</button>
+          </div>
+        </div>
+        <!-- <div id = "tips" class="login-footer" style="display:none"><span></span></div> -->
         <div class="login-footer"><span>登录即同意</span><a>《服务协议》</a><span>和</span><a>《隐私政策》</a></div>
       </div>
     </div>
